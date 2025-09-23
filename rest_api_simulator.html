@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulated REST API for IIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .container {
+            max-width: 900px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 flex justify-center items-start min-h-screen">
+    <div class="container bg-white rounded-xl shadow-lg p-8 space-y-8">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-800">IIQ REST API Simulator</h1>
+            <p class="text-gray-500 mt-2">A simple, in-browser REST API for your lab exercise.</p>
+        </header>
+
+        <section class="space-y-6">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Current User Database (GET /Users)</h2>
+                <div class="bg-gray-100 rounded-lg p-4 border border-gray-300">
+                    <pre id="userDataOutput" class="text-sm overflow-x-auto text-gray-800"></pre>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Create User Section -->
+                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 space-y-4">
+                    <h2 class="text-2xl font-semibold text-indigo-700">Create Account (POST /Users)</h2>
+                    <p class="text-sm text-indigo-500">Enter details for a new user.</p>
+                    <input type="text" id="createUserName" placeholder="Username (e.g., john.doe)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="text" id="createFirstName" placeholder="First Name (e.g., John)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="text" id="createLastName" placeholder="Last Name (e.g., Doe)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="text" id="createCapabilities" placeholder="Capabilities (e.g., admin, editor)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button onclick="createUser()" class="w-full py-2 px-4 bg-indigo-600 text-white font-medium rounded-md shadow hover:bg-indigo-700 transition-colors">Create Account</button>
+                </div>
+
+                <!-- Disable/Enable/Delete Section -->
+                <div class="bg-red-50 border border-red-200 rounded-lg p-6 space-y-4">
+                    <h2 class="text-2xl font-semibold text-red-700">Disable, Enable & Delete Operations</h2>
+                    <p class="text-sm text-red-500">Enter a user's ID to perform an action.</p>
+                    <input type="text" id="userId" placeholder="User ID (e.g., 101)" class="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="disableUser()" class="w-full py-2 px-4 bg-yellow-600 text-white font-medium rounded-md shadow hover:bg-yellow-700 transition-colors">Disable</button>
+                        <button onclick="enableUser()" class="w-full py-2 px-4 bg-green-600 text-white font-medium rounded-md shadow hover:bg-green-700 transition-colors">Enable</button>
+                        <button onclick="deleteUser()" class="w-full py-2 px-4 bg-red-600 text-white font-medium rounded-md shadow hover:bg-red-700 transition-colors">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">API Log</h2>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 h-64 overflow-y-auto">
+                <ul id="logOutput" class="space-y-2 text-sm text-gray-600"></ul>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // In-memory data store to simulate the REST API backend
+        let users = [
+            {
+                "id": "101",
+                "userName": "jill.smith",
+                "name": {
+                    "givenName": "Jill",
+                    "familyName": "Smith"
+                },
+                "active": true,
+                "capabilities": ["user", "manager"]
+            },
+            {
+                "id": "102",
+                "userName": "sara.jones",
+                "name": {
+                    "givenName": "Sara",
+                    "familyName": "Jones"
+                },
+                "active": true,
+                "capabilities": ["user", "developer"]
+            },
+            {
+                "id": "103",
+                "userName": "mike.williams",
+                "name": {
+                    "givenName": "Mike",
+                    "familyName": "Williams"
+                },
+                "active": false,
+                "capabilities": ["user"]
+            }
+        ];
+
+        let nextId = 104;
+
+        // Utility function to update the UI
+        function updateUI() {
+            document.getElementById('userDataOutput').textContent = JSON.stringify(users, null, 2);
+        }
+
+        // Utility function to log API actions
+        function log(message) {
+            const logElement = document.getElementById('logOutput');
+            const listItem = document.createElement('li');
+            listItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logElement.prepend(listItem);
+        }
+
+        // --- Simulated API Endpoints ---
+
+        // Test Connection & Account Aggregation (GET /scim/v2/Users)
+        function aggregateAccounts() {
+            log(`GET /scim/v2/Users - Response: ${users.length} accounts`);
+            updateUI();
+        }
+
+        // Create Account (POST /scim/v2/Users)
+        function createUser() {
+            const userName = document.getElementById('createUserName').value;
+            const firstName = document.getElementById('createFirstName').value;
+            const lastName = document.getElementById('createLastName').value;
+            const capabilitiesStr = document.getElementById('createCapabilities').value;
+
+            if (!userName || !firstName || !lastName) {
+                log('Error: Username, First Name, and Last Name are required to create a user.');
+                return;
+            }
+
+            const capabilities = capabilitiesStr.split(',').map(c => c.trim()).filter(c => c);
+
+            const newUser = {
+                "id": String(nextId++),
+                "userName": userName,
+                "name": {
+                    "givenName": firstName,
+                    "familyName": lastName
+                },
+                "active": true,
+                "capabilities": capabilities.length > 0 ? capabilities : ["user"]
+            };
+
+            users.push(newUser);
+            log(`POST /scim/v2/Users - Success: Created user ${newUser.id} (${newUser.userName})`);
+            updateUI();
+        }
+
+        // Disable Account (PATCH /scim/v2/Users/{id})
+        function disableUser() {
+            const userId = document.getElementById('userId').value;
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                user.active = false;
+                log(`PATCH /scim/v2/Users/${userId} - Success: User disabled`);
+                updateUI();
+            } else {
+                log(`Error: User with ID ${userId} not found.`);
+            }
+        }
+
+        // Enable Account (PATCH /scim/v2/Users/{id})
+        function enableUser() {
+            const userId = document.getElementById('userId').value;
+            const user = users.find(u => u.id === userId);
+            if (user) {
+                user.active = true;
+                log(`PATCH /scim/v2/Users/${userId} - Success: User enabled`);
+                updateUI();
+            } else {
+                log(`Error: User with ID ${userId} not found.`);
+            }
+        }
+
+        // Delete Account (DELETE /scim/v2/Users/{id})
+        function deleteUser() {
+            const userId = document.getElementById('userId').value;
+            const initialLength = users.length;
+            users = users.filter(u => u.id !== userId);
+            if (users.length < initialLength) {
+                log(`DELETE /scim/v2/Users/${userId} - Success: User deleted`);
+                updateUI();
+            } else {
+                log(`Error: User with ID ${userId} not found.`);
+            }
+        }
+
+        // Initial UI update on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            log('Simulator ready. Current users displayed above.');
+        });
+    </script>
+</body>
+</html>
