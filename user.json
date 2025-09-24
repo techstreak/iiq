@@ -1,40 +1,31 @@
 [
-  {
-    "id": "101",
-    "userName": "jill.smith",
-    "name": {
-      "givenName": "Jill",
-      "familyName": "Smith"
-    },
-    "active": true,
-    "capabilities": [
-      "user",
-      "manager"
-    ]
-  },
-  {
-    "id": "102",
-    "userName": "sara.jones",
-    "name": {
-      "givenName": "Sara",
-      "familyName": "Jones"
-    },
-    "active": true,
-    "capabilities": [
-      "user",
-      "developer"
-    ]
-  },
-  {
-    "id": "103",
-    "userName": "mike.williams",
-    "name": {
-      "givenName": "Mike",
-      "familyName": "Williams"
-    },
-    "active": false,
-    "capabilities": [
-      "user"
-    ]
-  }
+{
+"id": "101",
+"userName": "jill.smith",
+"name": "Jill Smith",
+"active": "true",
+"capabilities": [
+"user",
+"manager"
+]
+},
+{
+"id": "102",
+"userName": "sara.jones",
+"name": "Sara Jones",
+"active": "true",
+"capabilities": [
+"user",
+"developer"
+]
+},
+{
+"id": "103",
+"userName": "mike.williams",
+"name": "Mike Williams",
+"active": "false",
+"capabilities": [
+"user"
+]
+}
 ]
