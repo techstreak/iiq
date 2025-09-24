@@ -21,7 +21,7 @@
 <body class="bg-gray-100 p-8 flex justify-center items-start min-h-screen">
     <div class="container bg-white rounded-xl shadow-lg p-8 space-y-8">
         <header class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-gray-800">IIQ REST API Simulator N</h1>
+            <h1 class="text-4xl font-bold text-gray-800">IIQ REST API Simulator</h1>
             <p class="text-gray-500 mt-2">A simple, in-browser REST API for your lab exercise.</p>
         </header>
 
@@ -39,8 +39,7 @@
                     <h2 class="text-2xl font-semibold text-indigo-700">Create Account (POST /Users)</h2>
                     <p class="text-sm text-indigo-500">Enter details for a new user.</p>
                     <input type="text" id="createUserName" placeholder="Username (e.g., john.doe)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                    <input type="text" id="createFirstName" placeholder="First Name (e.g., John)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                    <input type="text" id="createLastName" placeholder="Last Name (e.g., Doe)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="text" id="createName" placeholder="Name (e.g., John Doe)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
                     <input type="text" id="createCapabilities" placeholder="Capabilities (e.g., admin, editor)" class="w-full p-2 border border-indigo-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
                     <button onclick="createUser()" class="w-full py-2 px-4 bg-indigo-600 text-white font-medium rounded-md shadow hover:bg-indigo-700 transition-colors">Create Account</button>
                 </div>
@@ -74,31 +73,22 @@
             {
                 "id": "101",
                 "userName": "jill.smith",
-                "name": {
-                    "givenName": "Jill",
-                    "familyName": "Smith"
-                },
-                "active": true,
+                "name": "Jill Smith",
+                "active": "true",
                 "capabilities": ["user", "manager"]
             },
             {
                 "id": "102",
                 "userName": "sara.jones",
-                "name": {
-                    "givenName": "Sara",
-                    "familyName": "Jones"
-                },
-                "active": true,
+                "name": "Sara Jones",
+                "active": "true",
                 "capabilities": ["user", "developer"]
             },
             {
                 "id": "103",
                 "userName": "mike.williams",
-                "name": {
-                    "givenName": "Mike",
-                    "familyName": "Williams"
-                },
-                "active": false,
+                "name": "Mike Williams",
+                "active": "false",
                 "capabilities": ["user"]
             }
         ];
@@ -129,12 +119,11 @@
         // Create Account (POST /scim/v2/Users)
         function createUser() {
             const userName = document.getElementById('createUserName').value;
-            const firstName = document.getElementById('createFirstName').value;
-            const lastName = document.getElementById('createLastName').value;
+            const name = document.getElementById('createName').value;
             const capabilitiesStr = document.getElementById('createCapabilities').value;
 
-            if (!userName || !firstName || !lastName) {
-                log('Error: Username, First Name, and Last Name are required to create a user.');
+            if (!userName || !name) {
+                log('Error: Username and Name are required to create a user.');
                 return;
             }
 
@@ -143,11 +132,8 @@
             const newUser = {
                 "id": String(nextId++),
                 "userName": userName,
-                "name": {
-                    "givenName": firstName,
-                    "familyName": lastName
-                },
-                "active": true,
+                "name": name,
+                "active": "true",
                 "capabilities": capabilities.length > 0 ? capabilities : ["user"]
             };
 
@@ -161,7 +147,7 @@
             const userId = document.getElementById('userId').value;
             const user = users.find(u => u.id === userId);
             if (user) {
-                user.active = false;
+                user.active = "false";
                 log(`PATCH /scim/v2/Users/${userId} - Success: User disabled`);
                 updateUI();
             } else {
@@ -174,7 +160,7 @@
             const userId = document.getElementById('userId').value;
             const user = users.find(u => u.id === userId);
             if (user) {
-                user.active = true;
+                user.active = "true";
                 log(`PATCH /scim/v2/Users/${userId} - Success: User enabled`);
                 updateUI();
             } else {
@@ -190,6 +176,7 @@
             if (users.length < initialLength) {
                 log(`DELETE /scim/v2/Users/${userId} - Success: User deleted`);
                 updateUI();
+            .
             } else {
                 log(`Error: User with ID ${userId} not found.`);
             }
